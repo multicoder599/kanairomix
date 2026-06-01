@@ -160,11 +160,12 @@
     }
     .thumb-wrap {
       position: relative; aspect-ratio: 16/9; overflow: hidden;
-      background: var(--surface-2);
+      background: linear-gradient(135deg, #1a1033 0%, #0d0a1a 50%, #1a0d2e 100%);
     }
     .thumb-wrap img {
       width: 100%; height: 100%; object-fit: cover;
       display: block; transition: transform 0.4s;
+      position: relative; z-index: 1;
     }
     .video-card:hover .thumb-wrap img { transform: scale(1.05); }
 
@@ -239,58 +240,72 @@
       100% { background-position: -200% 0; }
     }
 
-    /* ===== MODAL ===== */
+    /* ===== MODAL - YOUTUBE STYLE ===== */
     .modal-overlay {
       position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,0.88); backdrop-filter: blur(16px);
+      background: rgba(0,0,0,0.92);
       display: none; align-items: center; justify-content: center;
-      padding: 16px;
+      padding: 0;
     }
     .modal-overlay.active { display: flex; }
     .modal-content {
-      width: 100%; max-width: 900px;
+      width: 100%; max-width: 1100px;
       background: var(--surface); border-radius: var(--radius);
       border: 1px solid var(--border); overflow: hidden;
-      animation: modalIn 0.35s cubic-bezier(0.4,0,0.2,1);
+      animation: modalIn 0.3s ease-out;
+      display: flex; flex-direction: column;
     }
     @keyframes modalIn {
-      from { opacity: 0; transform: scale(0.92) translateY(20px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
     }
     .modal-header {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
     }
-    .modal-title { font-weight: 800; font-size: 16px; letter-spacing: -0.2px; }
+    .modal-title { font-weight: 700; font-size: 16px; letter-spacing: -0.2px; }
     .modal-close {
-      background: none; border: none; color: var(--text-muted);
+      background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
       cursor: pointer; padding: 6px; display: flex; align-items: center;
       border-radius: 8px; transition: all 0.2s;
     }
-    .modal-close:hover { color: var(--secondary); background: var(--surface-2); }
+    .modal-close:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+
+    /* YOUTUBE-STYLE WIDE PLAYER */
     .video-player {
-      width: 100%; aspect-ratio: 16/9; background: #000;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
       position: relative;
+      flex-shrink: 0;
     }
     .video-player video {
-      width: 100%; height: 100%; display: block;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
     }
+
     .telegram-cta {
-      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
       display: flex; align-items: center; gap: 8px;
-      padding: 12px 24px; background: linear-gradient(135deg, var(--telegram), #1a8bc7);
+      padding: 12px 28px; background: linear-gradient(135deg, var(--telegram), #1a8bc7);
       border: none; border-radius: 999px; color: #fff;
       font-family: inherit; font-size: 14px; font-weight: 700;
       cursor: pointer; text-decoration: none;
       box-shadow: 0 4px 20px rgba(34,158,217,0.4);
       animation: pulse 2s infinite; z-index: 5;
+      white-space: nowrap;
     }
     @keyframes pulse {
       0%, 100% { box-shadow: 0 4px 20px rgba(34,158,217,0.4); }
       50% { box-shadow: 0 4px 30px rgba(34,158,217,0.7); }
     }
     .telegram-cta:hover { transform: translateX(-50%) translateY(-2px); }
-    .modal-details { padding: 20px; }
+
+    .modal-details { padding: 20px; flex-shrink: 0; }
     .modal-desc {
       font-size: 14px; color: var(--text-secondary); line-height: 1.6;
       margin-bottom: 14px;
@@ -397,8 +412,23 @@
       .play-overlay .material-symbols-outlined { font-size: 32px; }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
       .footer-brand { grid-column: 1 / -1; }
-      .modal-content { border-radius: var(--radius-sm); }
-      .telegram-cta { padding: 10px 18px; font-size: 13px; }
+
+      /* Mobile modal - keep wide player */
+      .modal-overlay { padding: 0; }
+      .modal-content { 
+        border-radius: 0; 
+        border: none;
+        max-width: 100vw;
+        max-height: 100vh;
+      }
+      .modal-header { padding: 12px 16px; }
+      .video-player { aspect-ratio: 16 / 9; }
+      .telegram-cta { 
+        padding: 10px 18px; 
+        font-size: 13px; 
+        bottom: 50px;
+      }
+      .modal-details { padding: 16px; }
     }
     @media (max-width: 400px) {
       .video-grid { gap: 10px; }
@@ -493,7 +523,7 @@
         </button>
       </div>
       <div class="video-player">
-        <video id="modalVideo" controls playsinline></video>
+        <video id="modalVideo" controls playsinline preload="metadata"></video>
         <a id="modalTelegram" href="https://t.me/+n34Jd_tGyLswNjY5" target="_blank" class="telegram-cta">
           <span class="material-symbols-outlined">send</span>
           Get Full Video on Telegram
@@ -552,6 +582,22 @@
       }
     }
 
+    // Generate a nice gradient placeholder based on title
+    function getPlaceholderGradient(title) {
+      const colors = [
+        ['#1a1033', '#0d0a1a'],
+        ['#1a0d2e', '#0f0a1a'],
+        ['#0d1a2e', '#0a0f1a'],
+        ['#2e1a0d', '#1a0f0a'],
+        ['#1a2e0d', '#0f1a0a'],
+        ['#2e0d1a', '#1a0a0f'],
+      ];
+      let hash = 0;
+      for (let i = 0; i < (title || '').length; i++) hash = title.charCodeAt(i) + ((hash << 5) - hash);
+      const pair = colors[Math.abs(hash) % colors.length];
+      return `linear-gradient(135deg, ${pair[0]} 0%, ${pair[1]} 100%)`;
+    }
+
     async function loadVideos() {
       if (isLoading || !hasMore) return;
       isLoading = true; loader.style.display = 'block';
@@ -570,18 +616,22 @@
               <p>Check back later or try a different search.</p>
             </div>`;
         } else {
-          data.videos.forEach(v => {
+          data.videos.forEach((v, idx) => {
             const card = document.createElement('div');
             card.className = 'video-card';
 
-            // Only add hover video preview if this video has a separate preview file (uploaded videos)
-            // URL-added videos just show thumbnail without broken hover
             const hasPreview = v.previewUrl && v.previewUrl !== v.videoUrl && v.previewUrl.includes('/uploads/previews/');
+            const thumbUrl = v.thumbnail && v.thumbnail !== '/assets/placeholder.jpg' ? v.thumbnail : '';
+            const placeholderBg = getPlaceholderGradient(v.title);
+
+            // Eager load first 6 images, lazy load rest
+            const loadingAttr = idx < 6 ? 'eager' : 'lazy';
 
             card.innerHTML = `
-              <div class="thumb-wrap">
-                <img src="${v.thumbnail}" alt="${v.title}" loading="lazy" 
-                  onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,var(--surface-2),var(--surface-3))'">
+              <div class="thumb-wrap" style="background:${placeholderBg}">
+                ${thumbUrl ? `
+                <img src="${thumbUrl}" alt="${v.title}" loading="${loadingAttr}" 
+                  onerror="this.style.display='none'">` : ''}
                 ${hasPreview ? `
                 <video muted loop playsinline preload="metadata" class="preview-video"
                   onmouseenter="this.play()" onmouseleave="this.pause();this.currentTime=0;">
