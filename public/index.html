@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
   <style>
     :root {
-      /* New Sleek Dark/Blue Theme */
+      /* Sleek Dark/Blue Theme */
       --bg: #09090b;
       --surface: #18181b;
       --surface-2: #27272a;
@@ -162,21 +162,30 @@
       border-color: var(--primary);
       box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 20px var(--primary-glow);
     }
+    
     .thumb-wrap {
       position: relative; aspect-ratio: 16/9; overflow: hidden;
-      background: #000; width: 100%;
+      background: var(--surface-2); width: 100%;
     }
-    .thumb-wrap video {
-      width: 100%; height: 100%; object-fit: cover; /* Ensures thumbnails aren't stretched */
-      display: block; transition: transform 0.5s ease;
+    .thumb-img {
+      position: absolute; inset: 0; width: 100%; height: 100%; 
+      object-fit: cover; z-index: 1; transition: transform 0.5s ease;
     }
-    .video-card:hover .thumb-wrap video { transform: scale(1.05); }
+    .video-card:hover .thumb-img { transform: scale(1.05); }
+    
+    .preview-video {
+      position: absolute; inset: 0; width: 100%; height: 100%; 
+      object-fit: cover; z-index: 2; opacity: 0; transition: opacity 0.4s ease, transform 0.5s ease;
+    }
+    /* Only show video preview on hover (mostly for desktop) */
+    .video-card:hover .preview-video { opacity: 1; transform: scale(1.05); }
     
     .duration {
       position: absolute; bottom: 10px; right: 10px;
       background: rgba(0,0,0,0.85); padding: 4px 8px;
       border-radius: 4px; font-size: 11px; font-weight: 600;
       font-family: 'JetBrains Mono', monospace; color: #fff;
+      z-index: 3;
     }
     .play-overlay {
       position: absolute; inset: 0;
@@ -197,6 +206,7 @@
       border-radius: 4px; font-size: 11px; font-weight: 600;
       display: flex; align-items: center; gap: 4px;
       font-family: 'JetBrains Mono', monospace;
+      z-index: 3;
     }
     .card-info { padding: 16px; flex: 1; display: flex; flex-direction: column; }
     .card-title {
@@ -270,12 +280,11 @@
       display: flex; justify-content: center; align-items: center;
     }
     .video-player video {
-      width: 100%; height: 100%; object-fit: contain; /* Ensures entire video is visible */
+      width: 100%; height: 100%; object-fit: contain;
       outline: none;
     }
     .modal-details { padding: 24px; }
     
-    /* Repositioned CTA for better mobile UX (Moved out of video player) */
     .telegram-cta {
       display: flex; justify-content: center; align-items: center; gap: 8px;
       padding: 14px 24px; background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -389,7 +398,6 @@
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
       .footer-brand { grid-column: 1 / -1; }
       
-      /* Mobile Modal - Native App Feel */
       .modal-overlay { 
         padding: 0; 
         background: #000;
@@ -407,7 +415,6 @@
       .video-player { 
         width: 100vw; 
         aspect-ratio: auto;
-        /* Prevent super tall videos from overflowing screen height on mobile */
         max-height: 40vh; 
         flex-shrink: 0;
       }
@@ -459,6 +466,7 @@
     <div id="loader" class="spinner" style="display:none;"></div>
   </main>
 
+  <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
       <div class="footer-grid">
@@ -503,6 +511,7 @@
     </div>
   </footer>
 
+  <!-- VIDEO MODAL -->
   <div class="modal-overlay" id="videoModal" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -596,8 +605,9 @@
             card.className = 'video-card';
             card.innerHTML = `
               <div class="thumb-wrap">
-                <video muted loop playsinline preload="metadata" class="preview-video"
-                  poster="${v.thumbnail}" onmouseenter="this.play()" onmouseleave="this.pause();this.currentTime=0;">
+                <img src="${v.thumbnail}" class="thumb-img" loading="lazy" onerror="this.src='https://via.placeholder.com/300x170/18181b/3b82f6?text=No+Thumbnail'">
+                <video muted loop playsinline preload="none" class="preview-video"
+                  onmouseenter="this.play()" onmouseleave="this.pause();this.currentTime=0;">
                   <source src="${v.previewUrl || v.videoUrl}" type="video/mp4">
                 </video>
                 <span class="duration">${v.duration}</span>
@@ -605,7 +615,7 @@
                   <span class="material-symbols-outlined" style="font-size:13px;">visibility</span>
                   ${formatViews(v.views || 0)}
                 </span>
-                <div class="play-overlay">
+                <div class="play-overlay" style="z-index: 3;">
                   <span class="material-symbols-outlined">play_circle</span>
                 </div>
               </div>
