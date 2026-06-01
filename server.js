@@ -11,6 +11,9 @@ const app = express();
 const PORT = process.env.PORT || 3025;
 const TELEGRAM_LINK = process.env.TELEGRAM_LINK || 'https://t.me/+n34Jd_tGyLswNjY5';
 
+/* CRITICAL: Trust Nginx proxy so req.hostname and req.subdomains work */
+app.set('trust proxy', true);
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
@@ -175,9 +178,8 @@ app.delete('/api/admin/videos/:id', auth, (req, res) => {
   const video = videos.find(v => v.id === req.params.id);
   if (video) {
     [video.videoUrl, video.previewUrl, video.thumbnail].forEach(url => {
-      try {
-        if (url && url.startsWith('/uploads/')) fs.unlinkSync('.' + url);
-      } catch {}
+      try { if (url && url.startsWith('/uploads/')) fs.unlinkSync('.' + url); }
+      catch {}
     });
   }
   videos = videos.filter(v => v.id !== req.params.id);
@@ -193,10 +195,12 @@ app.get('/api/admin/stats', auth, (req, res) => {
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
-/* Subdomain routing */
+/* ========== SUBDOMAIN ROUTING ========== */
 app.get('/', (req, res) => {
-  const host = req.headers.host || '';
-  if (host.startsWith('admin.')) {
+  const host = (req.hostname || req.headers.host || '').toLowerCase();
+  const isAdmin = host.startsWith('admin.');
+  console.log(`[ROUTER] hostname=${req.hostname}, host=${req.headers.host}, isAdmin=${isAdmin}`);
+  if (isAdmin) {
     return res.sendFile(path.join(__dirname, 'public', 'admin.html'));
   }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
