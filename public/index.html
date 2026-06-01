@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kanairo Mix - Premium Content</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface-2: #1a1a25;
+      --border: #2a2a3a;
+      --text: #f0f0f5;
+      --text-secondary: #8a8a9a;
+      --accent: #e04050;
+      --accent-hover: #f05060;
+      --accent-glow: rgba(224, 64, 80, 0.3);
+      --success: #00d084;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 1400px; margin: 0 auto;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .logo {
+      font-weight: 800; font-size: 22px;
+      background: linear-gradient(135deg, var(--accent), #ff6b7a);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      display: flex; align-items: center; gap: 6px;
+      text-decoration: none;
+    }
+    .logo .material-symbols-outlined {
+      font-size: 26px; -webkit-text-fill-color: var(--accent);
+    }
+    .search-box {
+      flex: 1; max-width: 500px; position: relative;
+    }
+    .search-box input {
+      width: 100%; padding: 10px 16px 10px 40px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; color: var(--text); font-family: inherit;
+      font-size: 14px; outline: none; transition: all 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .search-box .material-symbols-outlined {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--text-secondary); font-size: 18px;
+    }
+    .menu-btn {
+      display: none; background: none; border: none;
+      color: var(--text); cursor: pointer; padding: 4px;
+    }
+
+    /* Categories */
+    .categories {
+      max-width: 1400px; margin: 0 auto; padding: 16px;
+      display: flex; gap: 10px; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .categories::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      white-space: nowrap; padding: 8px 18px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; color: var(--text-secondary);
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .cat-btn:hover, .cat-btn.active {
+      background: var(--accent); border-color: var(--accent);
+      color: #fff; box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    /* Grid */
+    .container {
+      max-width: 1400px; margin: 0 auto; padding: 0 16px 40px;
+    }
+    .section-title {
+      font-size: 18px; font-weight: 700; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .video-card {
+      background: var(--surface); border-radius: var(--radius);
+      overflow: hidden; border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.3s ease;
+      position: relative;
+    }
+    .video-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 20px var(--accent-glow);
+    }
+    .thumb-wrap {
+      position: relative; aspect-ratio: 16/9; overflow: hidden;
+      background: var(--surface-2);
+    }
+    .thumb-wrap img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.3s;
+    }
+    .video-card:hover .thumb-wrap img { transform: scale(1.05); }
+    .duration {
+      position: absolute; bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.8); padding: 2px 8px;
+      border-radius: 4px; font-size: 12px; font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .play-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.3); opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .video-card:hover .play-overlay { opacity: 1; }
+    .play-overlay .material-symbols-outlined {
+      font-size: 48px; color: var(--accent);
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    }
+    .views-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(0,0,0,0.7); padding: 2px 8px;
+      border-radius: 4px; font-size: 11px; font-weight: 600;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .card-info { padding: 12px; }
+    .card-title {
+      font-size: 14px; font-weight: 600; line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; margin-bottom: 8px;
+    }
+    .card-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; color: var(--text-secondary);
+    }
+    .card-tag {
+      background: var(--surface-2); padding: 2px 8px;
+      border-radius: 4px; font-size: 11px; font-weight: 600;
+    }
+
+    /* Skeleton loading */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+      background-size: 200% 100%; animation: shimmer 1.5s infinite;
+      border-radius: var(--radius);
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Video Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+      display: none; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      width: 100%; max-width: 960px;
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--border); overflow: hidden;
+      animation: modalIn 0.3s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-weight: 700; font-size: 16px; }
+    .modal-close {
+      background: none; border: none; color: var(--text-secondary);
+      cursor: pointer; padding: 4px; display: flex; align-items: center;
+    }
+    .modal-close:hover { color: var(--accent); }
+    .video-player {
+      width: 100%; aspect-ratio: 16/9; background: #000;
+    }
+    .video-player video {
+      width: 100%; height: 100%; display: block;
+    }
+    .modal-details { padding: 16px; }
+    .modal-tags {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;
+    }
+    .modal-tag {
+      background: var(--surface-2); border: 1px solid var(--border);
+      padding: 4px 12px; border-radius: 999px; font-size: 12px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 80px 20px; color: var(--text-secondary);
+    }
+    .empty-state .material-symbols-outlined {
+      font-size: 64px; margin-bottom: 16px; opacity: 0.5;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border); padding: 24px;
+      text-align: center; color: var(--text-secondary); font-size: 13px;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .header-inner { gap: 10px; }
+      .logo { font-size: 18px; }
+      .logo span:last-child { display: none; }
+      .search-box { max-width: none; }
+      .search-box input { padding: 8px 12px 8px 36px; font-size: 13px; }
+      .menu-btn { display: block; }
+      .video-grid {
+        grid-template-columns: repeat(2, 1fr); gap: 12px;
+      }
+      .card-title { font-size: 13px; }
+      .categories { padding: 12px; gap: 8px; }
+      .cat-btn { padding: 6px 14px; font-size: 12px; }
+    }
+    @media (max-width: 480px) {
+      .video-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 40px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+<base target="_blank">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="material-symbols-outlined">movie_filter</span>
+        <span>KanairoMix</span>
+      </a>
+      <div class="search-box">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" id="searchInput" placeholder="Search videos..." autocomplete="off">
+      </div>
+      <button class="menu-btn" onclick="toggleMobileMenu()">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="categories" id="categories">
+    <button class="cat-btn active" data-cat="all">All</button>
+    <div id="catList" style="display:flex;gap:10px;"></div>
+  </div>
+
+  <main class="container">
+    <h2 class="section-title">
+      <span class="material-symbols-outlined" style="color:var(--accent)">local_fire_department</span>
+      Trending Now
+    </h2>
+    <div id="videoGrid" class="video-grid"></div>
+    <div id="loader" class="spinner" style="display:none;"></div>
+  </main>
+
+  <footer>
+    <p>© 2024 Kanairo Mix. All rights reserved. 18+ Only.</p>
+  </footer>
+
+  <!-- Video Modal -->
+  <div class="modal-overlay" id="videoModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">Video Title</span>
+        <button class="modal-close" onclick="closeModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="video-player">
+        <video id="modalVideo" controls playsinline></video>
+      </div>
+      <div class="modal-details">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span id="modalViews" style="color:var(--text-secondary);font-size:13px;"></span>
+          <span id="modalCat" class="card-tag"></span>
+        </div>
+        <div class="modal-tags" id="modalTags"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    let currentCategory = 'all';
+    let currentSearch = '';
+    let isLoading = false;
+    let hasMore = true;
+
+    const grid = document.getElementById('videoGrid');
+    const loader = document.getElementById('loader');
+    const catList = document.getElementById('catList');
+    const searchInput = document.getElementById('searchInput');
+
+    // Load categories
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/categories');
+        const cats = await res.json();
+        catList.innerHTML = cats.map(c =>
+          `<button class="cat-btn" data-cat="${c}">${c}</button>`
+        ).join('');
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+          btn.onclick = () => {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = btn.dataset.cat;
+            currentPage = 1;
+            hasMore = true;
+            grid.innerHTML = '';
+            loadVideos();
+          };
+        });
+      } catch (e) { console.error('Categories error:', e); }
+    }
+
+    // Format number
+    function formatViews(n) {
+      if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+      return n.toString();
+    }
+
+    // Create skeleton cards
+    function showSkeleton(count = 6) {
+      for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.className = 'video-card skeleton';
+        div.style.height = '240px';
+        grid.appendChild(div);
+      }
+    }
+
+    // Load videos
+    async function loadVideos() {
+      if (isLoading || !hasMore) return;
+      isLoading = true;
+      loader.style.display = 'block';
+
+      try {
+        const url = `/api/videos?page=${currentPage}&limit=24&category=${currentCategory}&search=${encodeURIComponent(currentSearch)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // Remove skeletons on first page
+        if (currentPage === 1) {
+          grid.querySelectorAll('.skeleton').forEach(el => el.remove());
+        }
+
+        if (data.videos.length === 0 && currentPage === 1) {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column:1/-1;">
+              <span class="material-symbols-outlined">videocam_off</span>
+              <h3>No videos found</h3>
+              <p>Check back later or try a different search.</p>
+            </div>`;
+        } else {
+          data.videos.forEach(v => {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.innerHTML = `
+              <div class="thumb-wrap">
+                <img src="${v.thumbnail}" alt="${v.title}" loading="lazy" onerror="this.src='/assets/placeholder.jpg'">
+                <span class="duration">${v.duration}</span>
+                <span class="views-badge">
+                  <span class="material-symbols-outlined" style="font-size:14px;">visibility</span>
+                  ${formatViews(v.views || 0)}
+                </span>
+                <div class="play-overlay">
+                  <span class="material-symbols-outlined">play_circle</span>
+                </div>
+              </div>
+              <div class="card-info">
+                <div class="card-title">${v.title}</div>
+                <div class="card-meta">
+                  <span class="card-tag">${v.category}</span>
+                  <span>${new Date(v.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            `;
+            card.onclick = () => openModal(v);
+            grid.appendChild(card);
+          });
+        }
+
+        hasMore = data.videos.length === 24;
+        currentPage++;
+      } catch (e) {
+        console.error('Load error:', e);
+      } finally {
+        isLoading = false;
+        loader.style.display = 'none';
+      }
+    }
+
+    // Modal
+    function openModal(video) {
+      document.getElementById('modalTitle').textContent = video.title;
+      document.getElementById('modalViews').innerHTML = `
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">visibility</span>
+        ${formatViews(video.views || 0)} views
+      `;
+      document.getElementById('modalCat').textContent = video.category;
+      const tagsContainer = document.getElementById('modalTags');
+      tagsContainer.innerHTML = (video.tags || []).map(t => `<span class="modal-tag">${t}</span>`).join('');
+
+      const videoEl = document.getElementById('modalVideo');
+      videoEl.src = video.videoUrl;
+      videoEl.play().catch(() => {});
+      document.getElementById('videoModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(e) {
+      if (e && e.target !== e.currentTarget && e.type === 'click') return;
+      const videoEl = document.getElementById('modalVideo');
+      videoEl.pause();
+      videoEl.src = '';
+      document.getElementById('videoModal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Search
+    let searchTimeout;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        currentSearch = e.target.value;
+        currentPage = 1;
+        hasMore = true;
+        grid.innerHTML = '';
+        loadVideos();
+      }, 400);
+    });
+
+    // Infinite scroll
+    window.addEventListener('scroll', () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        loadVideos();
+      }
+    });
+
+    // Init
+    showSkeleton(6);
+    loadCategories();
+    loadVideos();
+  </script>
+</body>
+</html>

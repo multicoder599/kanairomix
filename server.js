@@ -1,0 +1,184 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
+
+const app = express();
+const PORT = process.env.PORT || 3025;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
+
+// Ensure directories exist
+const dirs = ['uploads/videos', 'uploads/thumbs', 'data'];
+dirs.forEach(d => {
+  if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+});
+
+// Data store
+const DATA_FILE = './data/videos.json';
+function loadVideos() {
+  try {
+    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch {
+    return [];
+  }
+}
+function saveVideos(videos) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(videos, null, 2));
+}
+
+// Multer config
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const folder = file.fieldname === 'thumbnail' ? 'uploads/thumbs' : 'uploads/videos';
+    cb(null, folder);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${ext}`);
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } });
+
+// Auth middleware
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'kanairo-admin-2024';
+function auth(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (token !== ADMIN_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
+
+// Routes
+
+app.get('/api/videos', (req, res) => {
+  let videos = loadVideos();
+  const { category, search, page = 1, limit = 24 } = req.query;
+
+  if (category && category !== 'all') {
+    videos = videos.filter(v => v.category === category);
+  }
+  if (search) {
+    const q = search.toLowerCase();
+    videos = videos.filter(v => v.title.toLowerCase().includes(q) || v.tags.some(t => t.includes(q)));
+  }
+
+  videos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const total = videos.length;
+  const start = (page - 1) * limit;
+  const paginated = videos.slice(start, start + parseInt(limit));
+
+  res.json({ videos: paginated, total, pages: Math.ceil(total / limit) });
+});
+
+app.get('/api/videos/:id', (req, res) => {
+  const videos = loadVideos();
+  const video = videos.find(v => v.id === req.params.id);
+  if (!video) return res.status(404).json({ error: 'Not found' });
+
+  video.views = (video.views || 0) + 1;
+  saveVideos(videos);
+
+  res.json(video);
+});
+
+app.get('/api/categories', (req, res) => {
+  const videos = loadVideos();
+  const cats = [...new Set(videos.map(v => v.category).filter(Boolean))];
+  res.json(cats);
+});
+
+app.post('/api/admin/videos', auth, (req, res) => {
+  const { title, videoUrl, thumbnail, category, tags, duration } = req.body;
+  if (!title || !videoUrl) return res.status(400).json({ error: 'Title and videoUrl required' });
+
+  const videos = loadVideos();
+  const newVideo = {
+    id: uuidv4(),
+    title,
+    videoUrl,
+    thumbnail: thumbnail || '/assets/placeholder.jpg',
+    category: category || 'Uncategorized',
+    tags: tags || [],
+    duration: duration || '00:00',
+    views: 0,
+    createdAt: new Date().toISOString()
+  };
+  videos.unshift(newVideo);
+  saveVideos(videos);
+  res.json(newVideo);
+});
+
+app.post('/api/admin/upload', auth, upload.fields([
+  { name: 'video', maxCount: 1 },
+  { name: 'thumbnail', maxCount: 1 }
+]), (req, res) => {
+  const videoFile = req.files.video?.[0];
+  const thumbFile = req.files.thumbnail?.[0];
+
+  if (!videoFile) return res.status(400).json({ error: 'Video required' });
+
+  const videos = loadVideos();
+  const newVideo = {
+    id: uuidv4(),
+    title: req.body.title || 'Untitled',
+    videoUrl: `/uploads/videos/${videoFile.filename}`,
+    thumbnail: thumbFile ? `/uploads/thumbs/${thumbFile.filename}` : '/assets/placeholder.jpg',
+    category: req.body.category || 'Uncategorized',
+    tags: req.body.tags ? req.body.tags.split(',').map(t => t.trim()) : [],
+    duration: req.body.duration || '00:00',
+    views: 0,
+    createdAt: new Date().toISOString()
+  };
+  videos.unshift(newVideo);
+  saveVideos(videos);
+  res.json(newVideo);
+});
+
+app.delete('/api/admin/videos/:id', auth, (req, res) => {
+  let videos = loadVideos();
+  const video = videos.find(v => v.id === req.params.id);
+  if (video) {
+    try {
+      if (video.videoUrl.startsWith('/uploads/')) fs.unlinkSync('.' + video.videoUrl);
+      if (video.thumbnail?.startsWith('/uploads/')) fs.unlinkSync('.' + video.thumbnail);
+    } catch {}
+  }
+  videos = videos.filter(v => v.id !== req.params.id);
+  saveVideos(videos);
+  res.json({ success: true });
+});
+
+app.get('/api/admin/stats', auth, (req, res) => {
+  const videos = loadVideos();
+  const totalViews = videos.reduce((sum, v) => sum + (v.views || 0), 0);
+  res.json({
+    totalVideos: videos.length,
+    totalViews,
+    categories: [...new Set(videos.map(v => v.category))].length
+  });
+});
+
+app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+
+// Subdomain routing: admin.kanairomix.com serves admin.html
+app.get('/', (req, res) => {
+  const host = req.headers.host || '';
+  if (host.startsWith('admin.')) {
+    return res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+  }
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`🔥 KanairoMix running on port ${PORT}`);
+  console.log(`🌐 Main: http://localhost:${PORT}`);
+  console.log(`⚙️  Admin: http://localhost:${PORT}/admin`);
+});

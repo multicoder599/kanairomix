@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanairo Mix - Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface-2: #1a1a25;
+      --border: #2a2a3a;
+      --text: #f0f0f5;
+      --text-secondary: #8a8a9a;
+      --accent: #e04050;
+      --accent-hover: #f05060;
+      --accent-glow: rgba(224, 64, 80, 0.3);
+      --success: #00d084;
+      --danger: #ff4757;
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+    }
+    .admin-header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .admin-title {
+      font-size: 20px; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #ff6b7a);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stats-bar {
+      display: flex; gap: 24px;
+    }
+    .stat-box {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px; font-weight: 800; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stat-label {
+      font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;
+    }
+    .container {
+      max-width: 1200px; margin: 0 auto; padding: 24px;
+      display: grid; grid-template-columns: 380px 1fr; gap: 24px;
+    }
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+    }
+    .panel h2 {
+      font-size: 16px; font-weight: 700; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 13px; font-weight: 600;
+      margin-bottom: 6px; color: var(--text-secondary);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px 14px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      font-family: inherit; font-size: 14px; outline: none;
+      transition: all 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .btn {
+      width: 100%; padding: 12px;
+      background: var(--accent); border: none; border-radius: var(--radius);
+      color: #fff; font-family: inherit; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+    }
+    .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-secondary {
+      background: var(--surface-2); border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #ff5e6e; }
+    .tabs {
+      display: flex; gap: 8px; margin-bottom: 20px;
+    }
+    .tab-btn {
+      padding: 8px 16px; background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text-secondary); font-family: inherit; font-size: 13px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--accent); border-color: var(--accent);
+      color: #fff;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .video-list { display: flex; flex-direction: column; gap: 12px; }
+    .video-item {
+      display: flex; gap: 12px; padding: 12px;
+      background: var(--surface-2); border-radius: var(--radius);
+      border: 1px solid var(--border); align-items: center;
+    }
+    .video-item img {
+      width: 100px; height: 56px; object-fit: cover;
+      border-radius: 6px; background: var(--bg);
+    }
+    .video-item-info { flex: 1; min-width: 0; }
+    .video-item-title {
+      font-weight: 600; font-size: 14px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .video-item-meta {
+      font-size: 12px; color: var(--text-secondary); margin-top: 4px;
+    }
+    .video-item-actions { display: flex; gap: 8px; }
+    .video-item-actions button {
+      background: none; border: none; color: var(--text-secondary);
+      cursor: pointer; padding: 4px; display: flex; align-items: center;
+      transition: color 0.2s;
+    }
+    .video-item-actions button:hover { color: var(--accent); }
+    .video-item-actions button.delete:hover { color: var(--danger); }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 14px 20px; border-radius: var(--radius);
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); font-weight: 600; font-size: 14px;
+      display: flex; align-items: center; gap: 10px;
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.3s ease; z-index: 300;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: var(--success); color: var(--success); }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    .empty-state {
+      text-align: center; padding: 40px; color: var(--text-secondary);
+    }
+
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+      .stats-bar { gap: 16px; }
+      .admin-header { padding: 12px 16px; }
+    }
+  </style>
+<base target="_blank">
+</head>
+<body>
+  <div class="admin-header">
+    <div class="admin-title">🔥 KanairoMix Admin</div>
+    <div class="stats-bar">
+      <div class="stat-box">
+        <div class="stat-value" id="statVideos">0</div>
+        <div class="stat-label">Videos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statViews">0</div>
+        <div class="stat-label">Views</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statCats">0</div>
+        <div class="stat-label">Categories</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Left: Add Video -->
+    <div class="panel">
+      <h2><span class="material-symbols-outlined">add_circle</span> Add New Video</h2>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('url')">URL</button>
+        <button class="tab-btn" onclick="switchTab('upload')">Upload</button>
+      </div>
+
+      <!-- URL Tab -->
+      <div id="tab-url" class="tab-content active">
+        <form id="urlForm">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="urlTitle" required placeholder="Video title">
+          </div>
+          <div class="form-group">
+            <label>Video URL</label>
+            <input type="url" id="urlVideo" required placeholder="https://... or /uploads/...">
+          </div>
+          <div class="form-group">
+            <label>Thumbnail URL</label>
+            <input type="url" id="urlThumb" placeholder="https://... or /uploads/...">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="urlCat" placeholder="e.g. Trending, Amateur">
+          </div>
+          <div class="form-group">
+            <label>Tags (comma separated)</label>
+            <input type="text" id="urlTags" placeholder="tag1, tag2, tag3">
+          </div>
+          <div class="form-group">
+            <label>Duration</label>
+            <input type="text" id="urlDuration" placeholder="05:32">
+          </div>
+          <button type="submit" class="btn">
+            <span class="material-symbols-outlined">save</span> Add Video
+          </button>
+        </form>
+      </div>
+
+      <!-- Upload Tab -->
+      <div id="tab-upload" class="tab-content">
+        <form id="uploadForm" enctype="multipart/form-data">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" required placeholder="Video title">
+          </div>
+          <div class="form-group">
+            <label>Video File</label>
+            <input type="file" name="video" accept="video/*" required>
+          </div>
+          <div class="form-group">
+            <label>Thumbnail (optional)</label>
+            <input type="file" name="thumbnail" accept="image/*">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" name="category" placeholder="e.g. Trending">
+          </div>
+          <div class="form-group">
+            <label>Tags</label>
+            <input type="text" name="tags" placeholder="tag1, tag2, tag3">
+          </div>
+          <div class="form-group">
+            <label>Duration</label>
+            <input type="text" name="duration" placeholder="05:32">
+          </div>
+          <button type="submit" class="btn">
+            <span class="material-symbols-outlined">cloud_upload</span> Upload
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right: Video List -->
+    <div class="panel">
+      <h2><span class="material-symbols-outlined">video_library</span> Manage Videos</h2>
+      <div id="videoList" class="video-list">
+        <div class="empty-state">Loading videos...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const ADMIN_TOKEN = localStorage.getItem('km_token') || prompt('Enter admin token:');
+    if (ADMIN_TOKEN) localStorage.setItem('km_token', ADMIN_TOKEN);
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+    }
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast ' + type + ' show';
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function api(url, opts = {}) {
+      const res = await fetch(url, {
+        ...opts,
+        headers: {
+          'Authorization': 'Bearer ' + ADMIN_TOKEN,
+          ...(opts.headers || {})
+        }
+      });
+      if (res.status === 401) {
+        localStorage.removeItem('km_token');
+        alert('Invalid token. Refresh and enter correct token.');
+        location.reload();
+        return;
+      }
+      return res;
+    }
+
+    // Load stats
+    async function loadStats() {
+      try {
+        const res = await api('/api/admin/stats');
+        const data = await res.json();
+        document.getElementById('statVideos').textContent = data.totalVideos;
+        document.getElementById('statViews').textContent = data.totalViews.toLocaleString();
+        document.getElementById('statCats').textContent = data.categories;
+      } catch (e) { console.error(e); }
+    }
+
+    // Load videos
+    async function loadVideos() {
+      try {
+        const res = await fetch('/api/videos?limit=100');
+        const data = await res.json();
+        const list = document.getElementById('videoList');
+        if (data.videos.length === 0) {
+          list.innerHTML = '<div class="empty-state">No videos yet. Add one!</div>';
+          return;
+        }
+        list.innerHTML = data.videos.map(v => `
+          <div class="video-item">
+            <img src="${v.thumbnail}" onerror="this.src='/assets/placeholder.jpg'">
+            <div class="video-item-info">
+              <div class="video-item-title">${v.title}</div>
+              <div class="video-item-meta">${v.category} • ${v.duration || '00:00'} • ${(v.views || 0).toLocaleString()} views</div>
+            </div>
+            <div class="video-item-actions">
+              <button onclick="previewVideo('${v.videoUrl}')" title="Preview">
+                <span class="material-symbols-outlined">play_arrow</span>
+              </button>
+              <button class="delete" onclick="deleteVideo('${v.id}')" title="Delete">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+        document.getElementById('videoList').innerHTML = '<div class="empty-state">Error loading videos</div>';
+      }
+    }
+
+    // URL form
+    document.getElementById('urlForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        title: document.getElementById('urlTitle').value,
+        videoUrl: document.getElementById('urlVideo').value,
+        thumbnail: document.getElementById('urlThumb').value,
+        category: document.getElementById('urlCat').value,
+        tags: document.getElementById('urlTags').value.split(',').map(t => t.trim()).filter(Boolean),
+        duration: document.getElementById('urlDuration').value
+      };
+      try {
+        const res = await api('/api/admin/videos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (res.ok) {
+          showToast('Video added!');
+          e.target.reset();
+          loadVideos(); loadStats();
+        } else {
+          const err = await res.json();
+          showToast(err.error || 'Failed', 'error');
+        }
+      } catch (e) { showToast('Network error', 'error'); }
+    });
+
+    // Upload form
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      try {
+        const res = await api('/api/admin/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (res.ok) {
+          showToast('Upload complete!');
+          e.target.reset();
+          loadVideos(); loadStats();
+        } else {
+          const err = await res.json();
+          showToast(err.error || 'Upload failed', 'error');
+        }
+      } catch (e) { showToast('Network error', 'error'); }
+    });
+
+    async function deleteVideo(id) {
+      if (!confirm('Delete this video?')) return;
+      try {
+        const res = await api('/api/admin/videos/' + id, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Deleted');
+          loadVideos(); loadStats();
+        } else { showToast('Delete failed', 'error'); }
+      } catch (e) { showToast('Error', 'error'); }
+    }
+
+    function previewVideo(url) {
+      window.open(url, '_blank');
+    }
+
+    loadStats();
+    loadVideos();
+  </script>
+</body>
+</html>
