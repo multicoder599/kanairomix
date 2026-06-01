@@ -8,7 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const { spawn } = require('child_process');
 
 const app = express();
-const PORT = process.env.PORT || 3025;
+const PORT = process.env.PORT || 3026;
 const TELEGRAM_LINK = process.env.TELEGRAM_LINK || 'https://t.me/+n34Jd_tGyLswNjY5';
 
 /* CRITICAL: Trust Nginx proxy so req.hostname and req.subdomains work */
@@ -16,7 +16,7 @@ app.set('trust proxy', true);
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static('public', { index: false }));
 app.use('/uploads', express.static('uploads'));
 
 const dirs = ['uploads/videos', 'uploads/thumbs', 'uploads/previews', 'data'];
